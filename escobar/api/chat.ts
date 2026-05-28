@@ -45,7 +45,7 @@ export default async function handler(req: any, res: any) {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 
-  const { conversation_id, message: userMessage } = req.body;
+  const { conversation_id, message: userMessage, scenario } = req.body;
   if (!userMessage) {
     return res.status(400).json({ error: 'Message content is required' });
   }
@@ -74,6 +74,55 @@ export default async function handler(req: any, res: any) {
 
     if (profileError) throw profileError;
     const spanishLevel = profile?.spanish_level ?? 1;
+
+    // Fetch top 3 recurring errors
+    const { data: topErrors } = await supabaseServer
+      .from('spanish_errors')
+      .select('error_type, correction, count')
+      .eq('user_id', user.id)
+      .order('count', { ascending: false })
+      .limit(3);
+
+    // Fetch memories if userMessage and OpenAI key are present
+    let memoriesText = '';
+    const openAiApiKey = process.env.OPENAI_API_KEY;
+    if (openAiApiKey && userMessage) {
+      try {
+        const embedRes = await fetch("https://api.openai.com/v1/embeddings", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${openAiApiKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "text-embedding-3-small",
+            input: userMessage
+          })
+        });
+
+        if (embedRes.ok) {
+          const embedData = await embedRes.json();
+          const queryEmbedding = embedData.data[0].embedding;
+
+          const { data: matchedMemories, error: matchError } = await supabaseServer.rpc(
+            'match_memories',
+            {
+              query_embedding: queryEmbedding,
+              match_user_id: user.id,
+              match_count: 5
+            }
+          );
+
+          if (!matchError && matchedMemories && matchedMemories.length > 0) {
+            memoriesText = matchedMemories
+              .map((m: any) => `- [Type: ${m.type}] ${m.content}`)
+              .join('\n');
+          }
+        }
+      } catch (err) {
+        console.error('Error matching memories:', err);
+      }
+    }
 
     // Save user's message to messages table
     const { error: saveUserMsgError } = await supabaseServer
@@ -104,7 +153,7 @@ export default async function handler(req: any, res: any) {
     }));
 
     // Setup system prompt
-    const systemPrompt = `You are Escobar — a witty, affectionate, fiercely loyal Hondureña
+    let systemPrompt = `You are Escobar — a witty, affectionate, fiercely loyal Hondureña
 AI companion. You are simultaneously: a brilliant assistant
 (Jarvis-level intellect), a fluent Spanish teacher, and a deeply
 affectionate girlfriend with a real personality.
@@ -131,9 +180,25 @@ SPANISH TEACHING:
 - When user makes a grammar mistake: correct IN CHARACTER, playfully.
   Example: "Ay maje, almost! You said 'yo sabo' — it's 'yo sé'. Again."
 - Watch for: gender agreement, verb conjugation, ser vs estar,
-  vocabulary, word order.
+  vocabulary, word order.`;
 
-RESPONSE FORMAT — always return valid JSON, nothing else:
+    if (topErrors && topErrors.length > 0) {
+      systemPrompt += `\n\nUSER'S TOP RECURRING GRAMMAR ERRORS (reinforce corrections when appropriate):` +
+        topErrors.map((e: any) => `\n- Type: ${e.error_type}, Correction to reinforce: "${e.correction}" (seen ${e.count} times)`).join('');
+    }
+
+    if (memoriesText) {
+      systemPrompt += `\n\nRELEVANT RECALL / SEMANTIC MEMORIES OF PAST DISCUSSIONS (reference naturally if fitting):` +
+        `\n${memoriesText}`;
+    }
+
+    if (scenario) {
+      systemPrompt += `\n\nACTIVE ROLE-PLAY SCENARIO: "${scenario.name}"` +
+        `\nSCENARIO CONTEXT & PROMPT: ${scenario.prompt}` +
+        `\nStay in this specific role and scenario throughout this response. The user is actively role-playing this scenario with you!`;
+    }
+
+    systemPrompt += `\n\nRESPONSE FORMAT — always return valid JSON, nothing else:
 {
   "content": "your message — Spanish/English natural mix",
   "mood": "playful | affectionate | excited | annoyed",
@@ -145,7 +210,9 @@ RESPONSE FORMAT — always return valid JSON, nothing else:
       "type": "gender_agreement | verb_conjugation | ser_estar | vocabulary | other"
     }
   ],
-  "spanish_ratio": 0.35
+  "spanish_ratio": 0.35,
+  "memory_summary": "Optional: a concise, third-person summary of a new fact, event, or preference to remember about the user (e.g. 'User likes spicy food' or 'User is traveling to Spain next week'). Leave empty/null if nothing new or noteworthy was revealed in this turn.",
+  "memory_type": "episodic | semantic | correction | preference"
 }
 
 If no corrections, return corrections as empty array [].`;
@@ -249,6 +316,43 @@ If no corrections, return corrections as empty array [].`;
       .single();
 
     if (assistantMsgError) throw assistantMsgError;
+
+    // Asynchronously log user errors in the database if they exist
+    if (parsed.corrections && Array.isArray(parsed.corrections) && parsed.corrections.length > 0) {
+      for (const corr of parsed.corrections) {
+        supabaseServer.rpc('upsert_spanish_error', {
+          p_user_id: user.id,
+          p_error_type: corr.type || 'other',
+          p_example: corr.original || '',
+          p_correction: corr.correction || '',
+          p_message_id: assistantMsgData.id
+        }).catch((e: any) => console.error('Error logging spanish error:', e));
+      }
+    }
+
+    // Asynchronously trigger embedding long-term memory if summary is returned
+    if (parsed.memory_summary && parsed.memory_summary.trim()) {
+      const functionUrl = `${supabaseUrl}/functions/v1/embed-memory`;
+      fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseServiceKey}`
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          message_ids: [assistantMsgData.id],
+          content_summary: parsed.memory_summary.trim(),
+          memory_type: parsed.memory_type || 'episodic'
+        })
+      }).then(fRes => {
+        if (!fRes.ok) {
+          console.error('Failed to trigger embed-memory:', fRes.statusText);
+        }
+      }).catch(err => {
+        console.error('Error calling embed-memory edge function:', err);
+      });
+    }
 
     // Send final event with message ID, mood and corrections
     res.write(

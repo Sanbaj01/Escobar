@@ -41,7 +41,7 @@ export function useChat() {
     }
   }, []);
 
-  const sendMessage = useCallback(async (content: string) => {
+  const sendMessage = useCallback(async (content: string, scenario?: { id: string; name: string; prompt: string }) => {
     if (!content.trim()) return;
 
     setError(null);
@@ -67,6 +67,7 @@ export function useChat() {
         body: JSON.stringify({
           conversation_id: conversationId,
           message: content,
+          scenario,
         }),
       });
 
@@ -151,6 +152,11 @@ export function useChat() {
     }
   }, [conversationId]);
 
+  const startNewConversation = useCallback(() => {
+    setConversationId(null);
+    setMessages([]);
+  }, []);
+
   return {
     messages,
     isLoading,
@@ -159,6 +165,8 @@ export function useChat() {
     sendMessage,
     loadMessages,
     setMessages,
+    startNewConversation,
+    setConversationId,
   };
 }
 export default useChat;
