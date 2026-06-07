@@ -12,97 +12,151 @@ export function usePorcupine(options: UsePorcupineOptions = {}) {
   const [isListening, setIsListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const porcupineManagerRef = useRef<any>(null);
+  const socketRef = useRef<WebSocket | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const micSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
-  const stopListening = useCallback(async () => {
-    if (!isInitialized || !isListening) return;
-    try {
-      if (porcupineManagerRef.current && typeof porcupineManagerRef.current.stop === 'function') {
-        await porcupineManagerRef.current.stop();
-      }
-      setIsListening(false);
-    } catch (err: any) {
-      console.error('Error stopping Porcupine:', err);
+  const stopListening = useCallback(() => {
+    if (!isListening) return;
+
+    if (processorRef.current) {
+      try {
+        processorRef.current.disconnect();
+      } catch (e) {}
+      processorRef.current = null;
     }
-  }, [isInitialized, isListening]);
+    if (micSourceRef.current) {
+      try {
+        micSourceRef.current.disconnect();
+      } catch (e) {}
+      micSourceRef.current = null;
+    }
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      try {
+        audioContextRef.current.close();
+      } catch (e) {}
+      audioContextRef.current = null;
+    }
+    if (streamRef.current) {
+      try {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      } catch (e) {}
+      streamRef.current = null;
+    }
+    if (socketRef.current) {
+      try {
+        socketRef.current.close();
+      } catch (e) {}
+      socketRef.current = null;
+    }
+    setIsListening(false);
+    console.log('openWakeWord: Stopped listening.');
+  }, [isListening]);
 
   const startListening = useCallback(async () => {
-    if (!isInitialized || isListening) return;
+    if (isListening) return;
+
+    const wsUrl = import.meta.env.VITE_OPENWAKEWORD_WS_URL || 'ws://localhost:19000';
+    console.log(`openWakeWord: Connecting to server at ${wsUrl}...`);
+
     try {
-      if (porcupineManagerRef.current && typeof porcupineManagerRef.current.start === 'function') {
-        await porcupineManagerRef.current.start();
-      }
-      setIsListening(true);
-    } catch (err: any) {
-      console.error('Error starting Porcupine:', err);
-      setError(err.message || 'Error starting wake word listener');
-    }
-  }, [isInitialized, isListening]);
+      const socket = new WebSocket(wsUrl);
+      socket.binaryType = 'arraybuffer';
+      socketRef.current = socket;
 
-  useEffect(() => {
-    let active = true;
-    const accessKey = import.meta.env.VITE_PICOVOICE_ACCESS_KEY;
+      socket.onopen = async () => {
+        console.log('openWakeWord: Connected to websocket server.');
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+          streamRef.current = stream;
 
-    if (!accessKey || accessKey === 'your-picovoice-access-key') {
-      console.warn('VITE_PICOVOICE_ACCESS_KEY is missing or using placeholder. Wake word listener will operate in simulation mode.');
-      setIsInitialized(true);
-      return;
-    }
+          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+          const audioContext = new AudioContextClass({ sampleRate: 16000 });
+          audioContextRef.current = audioContext;
 
-    const initPorcupine = async () => {
-      try {
-        // Dynamically import Porcupine Web SDK to prevent issues during SSR or static generation
-        const { PorcupineManager } = await import('@picovoice/porcupine-web');
-        
-        if (!active) return;
+          const micSource = audioContext.createMediaStreamSource(stream);
+          micSourceRef.current = micSource;
 
-        // Custom wake word or builtin preset keyword
-        // Since custom keywords require a trained .ppn file, we can fall back to 'Porcupine' or 'Bumblebee'
-        // if the model path is not set, or load it from public folder.
-        const keywordModel = keyword.toLowerCase() === 'escobar'
-          ? { publicPath: '/models/Escobar_wasm.ppn', label: 'Escobar' }
-          : keyword; // Presets like 'Porcupine', 'Bumblebee'
+          // Downsample to 16kHz mono using ScriptProcessor
+          const processor = audioContext.createScriptProcessor(2048, 1, 1);
+          processorRef.current = processor;
 
-        const manager = await PorcupineManager.create(
-          accessKey,
-          keywordModel,
-          () => {
-            console.log('Wake word detected!');
+          processor.onaudioprocess = (e) => {
+            if (socket.readyState !== WebSocket.OPEN) return;
+
+            const inputData = e.inputBuffer.getChannelData(0);
+            // Convert Float32 to Int16 PCM (16kHz mono)
+            const pcmData = new Int16Array(inputData.length);
+            for (let i = 0; i < inputData.length; i++) {
+              const s = Math.max(-1, Math.min(1, inputData[i]));
+              pcmData[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            }
+            socket.send(pcmData.buffer);
+          };
+
+          micSource.connect(processor);
+          processor.connect(audioContext.destination);
+          setIsListening(true);
+          setError(null);
+        } catch (err: any) {
+          console.error('openWakeWord: Failed to access microphone:', err);
+          setError('Permiso de micrófono denegado para detección de wake word.');
+          stopListening();
+        }
+      };
+
+      socket.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data.detected || (data.keyword && data.keyword.toLowerCase() === keyword.toLowerCase())) {
+            console.log('openWakeWord: Wake word detected!');
             if (onWakeWordDetected) {
               onWakeWordDetected();
             }
           }
-        );
-
-        if (!active) {
-          manager.release();
-          return;
+        } catch (err) {
+          if (typeof e.data === 'string' && e.data.toLowerCase().includes('detected')) {
+            console.log('openWakeWord: Wake word detected (raw text match)!');
+            if (onWakeWordDetected) {
+              onWakeWordDetected();
+            }
+          }
         }
+      };
 
-        porcupineManagerRef.current = manager;
-        setIsInitialized(true);
-      } catch (err: any) {
-        console.error('Failed to initialize Porcupine SDK:', err);
-        if (active) {
-          setError(err.message || 'Failed to initialize wake word detection');
-          // Graceful fallback to simulation
-          setIsInitialized(true);
-        }
-      }
-    };
+      socket.onerror = (err) => {
+        console.warn('openWakeWord: Socket error, falling back to local simulation mode.', err);
+        startSimulationFallback();
+      };
 
-    initPorcupine();
+      socket.onclose = () => {
+        console.log('openWakeWord: Connection closed.');
+        setIsListening(false);
+      };
 
+    } catch (err) {
+      console.warn('openWakeWord: Connection failed, falling back to local simulation mode.', err);
+      startSimulationFallback();
+    }
+  }, [keyword, onWakeWordDetected, stopListening, isListening]);
+
+  const startSimulationFallback = () => {
+    setIsListening(true);
+    setIsInitialized(true);
+    console.warn('openWakeWord: Server is offline. Wake-word detection operates in simulation. Use manual Tap-to-Talk button.');
+  };
+
+  useEffect(() => {
+    setIsInitialized(true);
     return () => {
-      active = false;
-      if (porcupineManagerRef.current) {
-        if (typeof porcupineManagerRef.current.release === 'function') {
-          porcupineManagerRef.current.release();
-        }
-        porcupineManagerRef.current = null;
+      // Cleanup on unmount
+      if (socketRef.current) {
+        socketRef.current.close();
       }
     };
-  }, [keyword, onWakeWordDetected]);
+  }, []);
 
   return {
     isInitialized,

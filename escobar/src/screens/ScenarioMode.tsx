@@ -20,36 +20,36 @@ const PRESET_SCENARIOS: Scenario[] = [
   {
     id: 'mercado',
     name: 'La Pulpería de Tegus',
-    difficulty: 'Principiante (A1-A2)',
+    difficulty: 'Beginner (A1-A2)',
     difficultyColor: 'bg-green-100 text-green-700 border-green-200',
-    shortDesc: 'Compra unas baleadas y refrescos en la pulpería de la esquina. ¡Aprende a pedir precios y usar caliche básico!',
+    shortDesc: 'Buy baleadas and sodas at the corner grocery store. Learn to ask for prices and use basic Honduran slang!',
     prompt: 'Actúa como Doña Nena, la dueña de una pulpería tradicional en Tegucigalpa. El usuario viene a comprar comida. Usa términos como "vaya maje", "¿qué va a llevar?", "cheque", "pucha". Sé amable pero directa y regatea un poco.',
     iconName: 'market'
   },
   {
     id: 'suegra',
     name: 'Conociendo a la Doña',
-    difficulty: 'Intermedio (B1-B2)',
+    difficulty: 'Intermediate (B1-B2)',
     difficultyColor: 'bg-orange-100 text-orange-700 border-orange-200',
-    shortDesc: 'Estás conociendo a la mamá de Escobar. Debes ser muy respetuoso, responder sus preguntas y ganarte su aprobación.',
+    shortDesc: 'You are meeting Escobar\'s mother. You must be very respectful, answer her questions, and earn her approval.',
     prompt: 'Actúa como Doña Xiomara, la madre de Escobar. Eres una señora respetable de Honduras, un poco protectora y desconfiada de las parejas de tu hija, pero cariñosa en el fondo. Hazle preguntas incómodas o divertidas al usuario sobre sus intenciones, trabajo y vida para evaluar si es digno.',
     iconName: 'mom'
   },
   {
     id: 'baleadas',
     name: 'Cena en la Caseta',
-    difficulty: 'Principiante (A1-A2)',
+    difficulty: 'Beginner (A1-A2)',
     difficultyColor: 'bg-green-100 text-green-700 border-green-200',
-    shortDesc: 'Pide baleadas con todo y horchata en una caseta tradicional en San Pedro Sula. ¡Elige tus ingredientes!',
+    shortDesc: 'Order baleadas with everything and horchata at a traditional food stall in San Pedro Sula. Choose your ingredients!',
     prompt: 'Actúa como el baleadero en una caseta de San Pedro Sula. Pregúntale al cliente qué ingredientes quiere (frijoles, mantequilla, huevo, aguacate, carne, plátano) y bromea un poco sobre el apetito del maje. Sé bien dinámico.',
     iconName: 'food'
   },
   {
     id: 'trabajo',
     name: 'El Trabajo Soñado',
-    difficulty: 'Avanzado (C1-C2)',
+    difficulty: 'Advanced (C1-C2)',
     difficultyColor: 'bg-purple-100 text-purple-700 border-purple-200',
-    shortDesc: 'Entrevista de trabajo en un call center bilingüe de San Pedro Sula. Demuestra tu nivel de español mezclado con inglés técnico.',
+    shortDesc: 'Job interview at a bilingual call center in San Pedro Sula. Demonstrate your Spanish level mixed with technical English.',
     prompt: 'Actúa como Carlos, el entrevistador de recursos humanos en un call center en San Pedro Sula. Haz preguntas profesionales pero mezcla inglés y español (Spanglish), evaluando la fluidez del candidato bajo presión. Usa términos de oficina mezclados con caliche corporativo.',
     iconName: 'job'
   }
@@ -82,10 +82,10 @@ export default function ScenarioMode({ onSelectScenario, onBack }: ScenarioModeP
           className="flex items-center text-primary font-nunito font-bold text-sm gap-1 hover:opacity-80 active:scale-95 transition-all"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Volver</span>
+          <span>Back</span>
         </button>
         <h2 className="flex-grow text-center font-serif-display text-lg font-bold pr-12 text-text">
-          Retos de Conversación
+          Conversation Challenges
         </h2>
       </div>
 
@@ -96,9 +96,9 @@ export default function ScenarioMode({ onSelectScenario, onBack }: ScenarioModeP
             <Sparkles className="w-6 h-6 text-primary animate-pulse" />
           </div>
           <div>
-            <h3 className="font-serif-display text-base font-bold text-text">Escenarios Interactivos</h3>
+            <h3 className="font-serif-display text-base font-bold text-text">Interactive Scenarios</h3>
             <p className="font-nunito text-xs text-muted leading-relaxed mt-0.5">
-              Pon a prueba tu español en situaciones cotidianas de Honduras. Escobar adoptará un rol para ayudarte a practicar en vivo.
+              Test your Spanish in everyday Honduran situations. Escobar will roleplay to help you practice live.
             </p>
           </div>
         </div>
@@ -138,7 +138,7 @@ export default function ScenarioMode({ onSelectScenario, onBack }: ScenarioModeP
               onClick={() => onSelectScenario(scenario)}
               className="mt-4 w-full bg-primary text-white font-nunito font-bold text-xs h-9 rounded-[50px] hover:bg-primary/95 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5"
             >
-              <span>Comenzar Reto</span>
+              <span>Start Challenge</span>
               <Sparkles className="w-3.5 h-3.5" />
             </button>
           </div>

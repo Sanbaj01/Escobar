@@ -13,25 +13,25 @@ interface SpanishError {
 }
 
 const ERROR_TYPE_LABELS: Record<string, string> = {
-  gender_agreement: 'Género',
-  verb_conjugation: 'Conjugación',
+  gender_agreement: 'Gender',
+  verb_conjugation: 'Conjugation',
   ser_estar: 'Ser vs Estar',
-  vocabulary: 'Vocabulario',
-  word_order: 'Orden de palabras',
-  subjunctive: 'Subjuntivo',
-  other: 'Otro'
+  vocabulary: 'Vocabulary',
+  word_order: 'Word Order',
+  subjunctive: 'Subjunctive',
+  other: 'Other'
 };
 
 const LEVEL_LABELS: Record<number, string> = {
-  1: 'Principiante I',
-  2: 'Principiante II',
-  3: 'Básico I',
-  4: 'Básico II',
-  5: 'Intermedio',
-  6: 'Avanzado I',
-  7: 'Avanzado II',
-  8: 'Fluido',
-  9: 'Hondureña Fluida',
+  1: 'Beginner I',
+  2: 'Beginner II',
+  3: 'Basic I',
+  4: 'Basic II',
+  5: 'Intermediate',
+  6: 'Advanced I',
+  7: 'Advanced II',
+  8: 'Fluent',
+  9: 'Fluent Honduran',
   10: 'Caliche Master 👑'
 };
 
@@ -64,7 +64,7 @@ export default function ProgresoScreen() {
 
   const handleClearError = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!window.confirm('¿Segura que quieres borrar el registro de este error, maje?')) return;
+    if (!window.confirm('Are you sure you want to delete this error record, maje?')) return;
     try {
       const { error } = await supabase
         .from('spanish_errors')
@@ -82,7 +82,7 @@ export default function ProgresoScreen() {
   };
 
   const level = profile?.spanish_level ?? 1;
-  const levelName = LEVEL_LABELS[level] || 'Principiante';
+  const levelName = LEVEL_LABELS[level] || 'Beginner';
 
   // Calculate simulated XP progress to next level
   const totalCorrections = errors.reduce((sum, err) => sum + err.count, 0);
@@ -99,7 +99,7 @@ export default function ProgresoScreen() {
       {/* Header */}
       <div className="flex items-center justify-center px-4 py-4 border-b border-primary/10 bg-white">
         <h2 className="font-serif-display text-xl font-bold text-text">
-          Mi Progreso
+          My Progress
         </h2>
       </div>
 
@@ -110,7 +110,7 @@ export default function ProgresoScreen() {
         <div className="bg-white border border-primary/10 rounded-2xl p-5 shadow-sm flex flex-col items-center text-center space-y-4">
           <div className="w-20 h-20 bg-primary rounded-full flex flex-col items-center justify-center text-white shadow-md relative">
             <span className="font-serif-display text-3xl font-bold leading-none">{level}</span>
-            <span className="font-nunito text-[8px] font-bold uppercase tracking-wider mt-0.5">Nivel</span>
+            <span className="font-nunito text-[8px] font-bold uppercase tracking-wider mt-0.5">Level</span>
             <Award className="absolute -bottom-1 -right-1 w-6 h-6 text-[#FFB347] bg-white rounded-full p-0.5 border border-primary/10 shadow-sm" />
           </div>
           <div>
@@ -118,14 +118,14 @@ export default function ProgresoScreen() {
               {levelName}
             </h3>
             <p className="font-nunito text-xs text-muted mt-1">
-              Sigue conversando para subir tu fluidez en caliche
+              Keep conversing to increase your Honduran slang fluency
             </p>
           </div>
 
           {/* XP Progress Bar */}
           <div className="w-full space-y-1.5 pt-2">
             <div className="flex justify-between items-center text-[10px] font-bold text-muted uppercase">
-              <span>Progreso del Nivel</span>
+              <span>Level Progress</span>
               <span>{Math.round(currentXP)} / {targetXP} XP</span>
             </div>
             <div className="w-full h-2 bg-surface/50 rounded-full overflow-hidden">
@@ -144,7 +144,7 @@ export default function ProgresoScreen() {
               {totalUniqueErrors}
             </span>
             <span className="font-nunito text-[9px] font-bold text-muted uppercase tracking-wider">
-              Errores Únicos
+              Unique Errors
             </span>
           </div>
           <div className="bg-white border border-primary/10 rounded-xl p-3 text-center shadow-sm">
@@ -152,7 +152,7 @@ export default function ProgresoScreen() {
               {totalCorrections}
             </span>
             <span className="font-nunito text-[9px] font-bold text-muted uppercase tracking-wider">
-              Correcciones
+              Corrections
             </span>
           </div>
           <div className="bg-white border border-primary/10 rounded-xl p-3 text-center shadow-sm">
@@ -160,7 +160,7 @@ export default function ProgresoScreen() {
               {Math.max(0, 12 - totalUniqueErrors)}
             </span>
             <span className="font-nunito text-[9px] font-bold text-muted uppercase tracking-wider">
-              Días Limpios
+              Clean Days
             </span>
           </div>
         </div>
@@ -170,7 +170,7 @@ export default function ProgresoScreen() {
           <div className="flex items-center gap-1.5 pl-1">
             <TrendingUp className="w-4 h-4 text-primary" />
             <span className="font-nunito text-xs font-bold text-muted uppercase tracking-wider">
-              Mis Errores Frecuentes
+              My Frequent Mistakes
             </span>
           </div>
 
@@ -181,7 +181,7 @@ export default function ProgresoScreen() {
           ) : errors.length === 0 ? (
             /* Empty State */
             <div className="bg-white/50 border border-dashed border-primary/20 rounded-2xl p-8 text-center text-muted font-nunito text-sm">
-              ¡Todavía sin errores registrados, maje! Segí conversando con Escobar. 💬
+              No errors recorded yet, maje! Keep chatting with Escobar. 💬
             </div>
           ) : (
             <div className="flex flex-col space-y-3">
@@ -208,7 +208,7 @@ export default function ProgresoScreen() {
                         {ERROR_TYPE_LABELS[err.error_type] || err.error_type}
                       </span>
                       <span className="font-nunito text-[10px] text-muted">
-                        Visto hace poco
+                        Recently seen
                       </span>
                     </div>
                   </div>
@@ -243,10 +243,10 @@ export default function ProgresoScreen() {
             <div className="flex justify-between items-start">
               <div>
                 <span className="px-2.5 py-0.5 bg-surface text-primary rounded-full text-[10px] font-bold uppercase">
-                  Detalle del error
+                  Error Detail
                 </span>
                 <h3 className="font-serif-display text-xl font-bold text-text mt-1.5">
-                  Falla de {ERROR_TYPE_LABELS[selectedError.error_type] || selectedError.error_type}
+                  {ERROR_TYPE_LABELS[selectedError.error_type] || selectedError.error_type} Mistake
                 </h3>
               </div>
               <button 
@@ -259,21 +259,21 @@ export default function ProgresoScreen() {
 
             <div className="space-y-3 bg-[#FFF8F0] border border-primary/5 rounded-2xl p-4">
               <div className="flex flex-col">
-                <span className="font-nunito text-[10px] font-bold text-muted uppercase">Dijiste incorrectamente:</span>
+                <span className="font-nunito text-[10px] font-bold text-muted uppercase">You incorrectly said:</span>
                 <span className="font-nunito text-sm text-secondary line-through mt-0.5">{selectedError.example}</span>
               </div>
               <div className="flex flex-col border-t border-primary/5 pt-2.5">
-                <span className="font-nunito text-[10px] font-bold text-muted uppercase">Lo correcto es:</span>
+                <span className="font-nunito text-[10px] font-bold text-muted uppercase">The correct way is:</span>
                 <span className="font-nunito text-base font-bold text-primary mt-0.5">{selectedError.correction}</span>
               </div>
             </div>
 
             <div className="space-y-2">
               <h4 className="font-nunito font-bold text-xs text-muted uppercase tracking-wider pl-0.5">
-                Consejo de Escobar
+                Escobar's Advice
               </h4>
               <p className="font-nunito text-sm text-text leading-relaxed italic bg-surface/10 p-3 rounded-xl border border-primary/10">
-                "¡Ay maje! No te preocupes, errar es de humanos. Pero recordá: `{selectedError.correction}` suena mucho mejor. ¡Seguí practicando y cheque!"
+                "¡Ay maje! Don't worry, to err is human. But remember: `{selectedError.correction}` sounds much better. Keep practicing and cheque!"
               </p>
             </div>
 
@@ -282,7 +282,7 @@ export default function ProgresoScreen() {
                 onClick={() => setSelectedError(null)}
                 className="flex-1 bg-primary text-white font-nunito font-bold text-sm h-11 rounded-[50px] shadow-sm hover:bg-primary/95 transition-all active:scale-[0.98]"
               >
-                Cheque, entendido
+                Cheque, understood
               </button>
             </div>
           </div>

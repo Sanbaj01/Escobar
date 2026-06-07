@@ -8,10 +8,10 @@ interface AvatarStudioProps {
 }
 
 const MOOD_LABELS = {
-  playful: 'Juguetona (Smirk)',
-  affectionate: 'Cariñosa (Smile)',
-  excited: 'Emocionada (Glee)',
-  annoyed: 'Enojadita (Pout)'
+  playful: 'Playful (Smirk)',
+  affectionate: 'Affectionate (Smile)',
+  excited: 'Excited (Glee)',
+  annoyed: 'Annoyed (Pout)'
 };
 
 export default function AvatarStudio({ onBack }: AvatarStudioProps) {
@@ -66,7 +66,7 @@ export default function AvatarStudio({ onBack }: AvatarStudioProps) {
         if (pendingJobId) {
           setActiveJobId(pendingJobId);
           setJobStatus('processing');
-          setStatusMessage('Resumiendo chequeo de generación...');
+          setStatusMessage('Resuming generation check...');
         }
       }
     } catch (err) {
@@ -115,13 +115,13 @@ export default function AvatarStudio({ onBack }: AvatarStudioProps) {
         if (status === 'succeeded') {
           setJobStatus('succeeded');
           setActiveJobId(null);
-          setStatusMessage('¡Avatar generado con éxito, maje! 🎉');
+          setStatusMessage('Avatar generated successfully, maje! 🎉');
           await fetchActiveAvatars();
           await refreshProfile();
         } else if (status === 'failed') {
           setJobStatus('failed');
           setActiveJobId(null);
-          setStatusMessage('Error en el servidor al entrenar el avatar.');
+          setStatusMessage('Server error training the avatar.');
         }
       } catch (err) {
         console.error('Error polling status:', err);
@@ -155,14 +155,14 @@ export default function AvatarStudio({ onBack }: AvatarStudioProps) {
 
   const handleGenerate = async () => {
     if (files.length < 5) {
-      setError('Por favor, selecciona al menos 5 fotos.');
+      setError('Please select at least 5 photos.');
       return;
     }
     if (!user) return;
 
     setLoading(true);
     setError(null);
-    setStatusMessage('Subiendo fotos de referencia...');
+    setStatusMessage('Uploading reference photos...');
 
     try {
       const uploadedUrls: string[] = [];
@@ -185,10 +185,10 @@ export default function AvatarStudio({ onBack }: AvatarStudioProps) {
           .getPublicUrl(filePath);
 
         uploadedUrls.push(publicUrl);
-        setStatusMessage(`Subiendo fotos... (${i + 1}/${files.length})`);
+        setStatusMessage(`Uploading photos... (${i + 1}/${files.length})`);
       }
 
-      setStatusMessage('Enviando a Replicate GPU...');
+      setStatusMessage('Sending to Replicate GPU...');
 
       const sessionRes = await supabase.auth.getSession();
       const token = sessionRes.data.session?.access_token;
@@ -205,7 +205,7 @@ export default function AvatarStudio({ onBack }: AvatarStudioProps) {
 
       if (!response.ok) {
         const errText = await response.text();
-        throw new Error(errText || 'Error al iniciar la generación.');
+        throw new Error(errText || 'Error initiating generation.');
       }
 
       const { job_id } = await response.json();
@@ -217,14 +217,14 @@ export default function AvatarStudio({ onBack }: AvatarStudioProps) {
 
     } catch (err: any) {
       console.error('Trigger regeneration error:', err);
-      setError(err.message || 'Error al procesar la solicitud.');
+      setError(err.message || 'Error processing request.');
       setStatusMessage(null);
       setLoading(false);
     }
   };
 
   const handleClearAvatars = async () => {
-    if (!window.confirm('¿Segura que quieres eliminar tu avatar personalizado y volver al ilustrado, maje?')) {
+    if (!window.confirm('Are you sure you want to delete your custom avatar and revert to the illustrated one, maje?')) {
       return;
     }
     setError(null);
@@ -248,9 +248,9 @@ export default function AvatarStudio({ onBack }: AvatarStudioProps) {
 
       await refreshProfile();
       setAvatarUrls({});
-      setStatusMessage('Avatar personalizado eliminado.');
+      setStatusMessage('Custom avatar deleted.');
     } catch (err: any) {
-      setError(err.message || 'Error al eliminar el avatar.');
+      setError(err.message || 'Error deleting avatar.');
     } finally {
       setLoading(false);
     }
@@ -268,10 +268,10 @@ export default function AvatarStudio({ onBack }: AvatarStudioProps) {
           className="flex items-center text-primary font-nunito font-bold text-sm gap-1 hover:opacity-80 active:scale-95 transition-all disabled:opacity-50"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Volver</span>
+          <span>Back</span>
         </button>
         <h2 className="flex-1 text-center font-serif-display text-lg font-bold text-text pr-10">
-          Estudio de Avatar
+          Avatar Studio
         </h2>
       </div>
 
@@ -294,7 +294,7 @@ export default function AvatarStudio({ onBack }: AvatarStudioProps) {
             )}
             <div className="space-y-1">
               <p className="font-nunito text-xs font-bold uppercase tracking-wider">
-                Estado del Proceso
+                Process Status
               </p>
               <p className="font-nunito text-sm leading-relaxed">
                 {statusMessage}
@@ -320,7 +320,7 @@ export default function AvatarStudio({ onBack }: AvatarStudioProps) {
         {/* 2x2 Grid of Avatars */}
         <div className="space-y-3">
           <span className="font-nunito text-xs font-bold text-muted uppercase tracking-wider pl-1">
-            Gestos Activos
+            Active Expressions
           </span>
           <div className="grid grid-cols-2 gap-4">
             {moods.map((mood) => {
@@ -358,10 +358,10 @@ export default function AvatarStudio({ onBack }: AvatarStudioProps) {
           <div className="bg-white border border-primary/10 rounded-2xl p-4 shadow-sm space-y-4">
             <h3 className="font-serif-display text-lg font-bold text-primary flex items-center gap-1.5">
               <Camera className="w-5 h-5 text-primary" />
-              <span>Regenerar Rostro</span>
+              <span>Regenerate Face</span>
             </h3>
             <p className="font-nunito text-xs text-muted leading-relaxed">
-              ¿Quieres cambiar las fotos de referencia de Escobar? Sube <span className="font-bold text-text">5-10 fotos nuevas</span> para volver a entrenar. El avatar actual se mantendrá hasta que la generación termine.
+              Do you want to change Escobar's reference photos? Upload <span className="font-bold text-text">5-10 new photos</span> to retrain. The current avatar will be kept until generation is complete.
             </p>
 
             {/* Clickable Dash Area */}
@@ -371,7 +371,7 @@ export default function AvatarStudio({ onBack }: AvatarStudioProps) {
             >
               <UploadCloud className="w-6 h-6 text-primary/70 mb-1" />
               <span className="font-nunito font-semibold text-[11px] text-text">
-                Toca para seleccionar nuevas fotos
+                Tap to select new photos
               </span>
               <input
                 ref={fileInputRef}
@@ -387,7 +387,7 @@ export default function AvatarStudio({ onBack }: AvatarStudioProps) {
             {files.length > 0 && (
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-[10px] font-bold text-muted uppercase">
-                  <span>Imágenes seleccionadas</span>
+                  <span>Selected images</span>
                   <span>{files.length} / 10</span>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-1 max-w-full">
@@ -413,7 +413,7 @@ export default function AvatarStudio({ onBack }: AvatarStudioProps) {
                   disabled={files.length < 5}
                   className="flex w-full items-center justify-center bg-primary text-white font-nunito font-bold text-xs h-10 rounded-[50px] shadow-sm hover:bg-primary/95 transition-all active:scale-[0.98] disabled:opacity-40"
                 >
-                  Entrenar nueva Escobar
+                  Train new Escobar
                 </button>
               </div>
             )}
@@ -424,7 +424,7 @@ export default function AvatarStudio({ onBack }: AvatarStudioProps) {
                 onClick={handleClearAvatars}
                 className="flex w-full items-center justify-center border border-secondary text-secondary bg-transparent font-nunito font-bold text-xs h-10 rounded-[50px] hover:bg-secondary/5 transition-all active:scale-98"
               >
-                Eliminar avatar personalizado
+                Delete custom avatar
               </button>
             )}
           </div>
@@ -435,7 +435,7 @@ export default function AvatarStudio({ onBack }: AvatarStudioProps) {
       {/* Footer message */}
       <div className="px-5 py-4 border-t border-primary/5 bg-white text-center">
         <p className="font-nunito text-[10px] text-muted/60">
-          Proyecto Escobar Estudio • V1.0
+          Project Escobar Studio • V1.0
         </p>
       </div>
     </div>

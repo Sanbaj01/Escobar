@@ -18,6 +18,7 @@ interface AuthContextType {
   loading: boolean;
   isAuthenticated: boolean;
   refreshProfile: () => Promise<void>;
+  initError: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,6 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initError, setInitError] = useState<string | null>(null);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -40,7 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         setProfile(data);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Catch error fetching profile:', err);
     }
   };
@@ -52,6 +54,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    const url = import.meta.env.VITE_SUPABASE_URL;
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (!url || !key || !supabase) {
+      setInitError(`Missing Supabase configuration. URL: ${url ? 'defined' : 'undefined'}, Anon Key: ${key ? 'defined' : 'undefined'}, Client: ${supabase ? 'initialized' : 'failed'}`);
+      setLoading(false);
+      return;
+    }
+
     // 1. Get initial session
     const getInitialSession = async () => {
       try {
@@ -60,30 +71,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(session.user);
           await fetchProfile(session.user.id);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error getting initial session:', err);
+        setInitError(`Session Error: ${err.message || err}`);
       } finally {
         setLoading(false);
       }
     };
 
-    getInitialSession();
+    try {
+      getInitialSession();
 
-    // 2. Set up auth listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-        await fetchProfile(session.user.id);
-      } else {
-        setUser(null);
-        setProfile(null);
-      }
+      // 2. Set up auth listener
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        try {
+          if (session?.user) {
+            setUser(session.user);
+            await fetchProfile(session.user.id);
+          } else {
+            setUser(null);
+            setProfile(null);
+          }
+        } catch (err: any) {
+          console.error('Error in auth state change:', err);
+          setInitError(`Auth Callback Error: ${err.message || err}`);
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    } catch (err: any) {
+      console.error('Error in AuthContext setup:', err);
+      setInitError(`Setup Error: ${err.message || err}`);
       setLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    }
   }, []);
 
   const value = {
@@ -92,6 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     isAuthenticated: !!user,
     refreshProfile,
+    initError,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

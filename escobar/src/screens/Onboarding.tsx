@@ -64,7 +64,7 @@ export default function OnboardingScreen() {
   const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setError('Por favor, dime cómo llamarte, maje.');
+      setError('Please tell me your name.');
       return;
     }
     setError(null);
@@ -111,14 +111,14 @@ export default function OnboardingScreen() {
 
   const handleGenerateAvatar = async () => {
     if (files.length < 5) {
-      setError('Sube al menos 5 fotos para generar el avatar, maje.');
+      setError('Please upload at least 5 photos to generate the avatar.');
       return;
     }
     if (!user) return;
 
     setLoading(true);
     setError(null);
-    setUploadProgress('Subiendo fotos a Supabase Storage...');
+    setUploadProgress('Uploading photos to Supabase Storage...');
 
     try {
       const uploadedUrls: string[] = [];
@@ -143,10 +143,10 @@ export default function OnboardingScreen() {
           .getPublicUrl(filePath);
 
         uploadedUrls.push(publicUrl);
-        setUploadProgress(`Subiendo fotos... (${i + 1}/${files.length})`);
+        setUploadProgress(`Uploading photos... (${i + 1}/${files.length})`);
       }
 
-      setUploadProgress('Iniciando entrenamiento en Replicate...');
+      setUploadProgress('Starting training on Replicate...');
 
       // 2. Trigger Replicate avatar training
       const sessionRes = await supabase.auth.getSession();
@@ -164,15 +164,15 @@ export default function OnboardingScreen() {
 
       if (!response.ok) {
         const errText = await response.text();
-        throw new Error(errText || 'Error al iniciar la generación en el servidor.');
+        throw new Error(errText || 'Error starting generation on server.');
       }
 
-      setUploadProgress('¡Todo listo! Redireccionando...');
+      setUploadProgress('All set! Redirecting...');
       await saveOnboardingData(spanishLevel, true);
 
     } catch (err: any) {
       console.error('Avatar generation flow error:', err);
-      setError(err.message || 'Error al subir fotos y generar avatar.');
+      setError(err.message || 'Error uploading photos and generating avatar.');
       setUploadProgress(null);
       setLoading(false);
     }
@@ -180,7 +180,7 @@ export default function OnboardingScreen() {
 
   const saveOnboardingData = async (level: number, avatarTriggered: boolean) => {
     if (!user) {
-      setError('No se encontró una sesión activa.');
+      setError('No active session found.');
       return;
     }
 
@@ -203,7 +203,7 @@ export default function OnboardingScreen() {
       await refreshProfile();
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Error al guardar la información de onboarding.');
+      setError(err.message || 'Error saving onboarding information.');
       setLoading(false);
     }
   };
@@ -234,7 +234,7 @@ export default function OnboardingScreen() {
               className="flex items-center text-primary font-nunito font-semibold text-sm gap-1 hover:opacity-80 active:scale-95 transition-all"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Volver</span>
+              <span>Back</span>
             </button>
           )}
         </div>
@@ -251,9 +251,9 @@ export default function OnboardingScreen() {
             /* LOADING OVERLAY STATE */
             <div className="text-center space-y-4 animate-fadeIn">
               <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
-              <h3 className="font-serif-display text-2xl font-bold text-primary">Dale un momento, maje...</h3>
+              <h3 className="font-serif-display text-2xl font-bold text-primary">Give it a moment...</h3>
               <p className="font-nunito text-sm text-muted">
-                {uploadProgress || 'Guardando tus datos en el servidor...'}
+                {uploadProgress || 'Saving your data on the server...'}
               </p>
             </div>
           ) : step === 1 ? (
@@ -263,10 +263,10 @@ export default function OnboardingScreen() {
                 <User className="w-8 h-8 text-primary" />
               </div>
               <h2 className="font-serif-display text-4xl font-bold text-primary">
-                ¿Cómo te llamo?
+                What should I call you?
               </h2>
               <p className="font-nunito text-muted text-base">
-                Dime tu nombre o apodo para que podamos empezar a hablar, maje.
+                Enter your name or nickname so we can start talking.
               </p>
 
               <form onSubmit={handleNameSubmit} className="w-full flex flex-col space-y-4 pt-2">
@@ -274,7 +274,7 @@ export default function OnboardingScreen() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Tu nombre..."
+                  placeholder="Your name..."
                   maxLength={30}
                   className="w-full h-12 px-6 bg-white border-[1.5px] border-primary rounded-[50px] font-nunito text-text placeholder-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/45 text-center text-lg font-semibold transition-all"
                 />
@@ -283,7 +283,7 @@ export default function OnboardingScreen() {
                   type="submit"
                   className="flex w-full items-center justify-center bg-primary text-white font-nunito font-bold text-base h-12 rounded-[50px] shadow-md hover:bg-primary/95 transition-all active:scale-[0.98]"
                 >
-                  ¡Vamos! 🚀
+                  Let's go! 🚀
                 </button>
               </form>
             </div>
@@ -292,10 +292,10 @@ export default function OnboardingScreen() {
             <div className="w-full flex flex-col animate-fadeIn">
               <div className="w-full flex items-center justify-between mb-4">
                 <span className="font-nunito text-xs text-muted font-bold uppercase tracking-wider">
-                  Evaluación de Español
+                  Spanish Assessment
                 </span>
                 <span className="font-nunito text-xs text-primary font-bold">
-                  {currentQuestionIdx + 1} de {QUIZ_QUESTIONS.length}
+                  {currentQuestionIdx + 1} of {QUIZ_QUESTIONS.length}
                 </span>
               </div>
               <div className="w-full h-2 bg-surface rounded-full overflow-hidden mb-8">
@@ -336,7 +336,7 @@ export default function OnboardingScreen() {
                     disabled={selectedOption === null}
                     className="flex w-full items-center justify-center bg-primary text-white font-nunito font-bold text-base h-12 rounded-[50px] shadow-md hover:bg-primary/95 transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
                   >
-                    Siguiente pregunta
+                    Next Question
                   </button>
                 </div>
               </div>
@@ -349,10 +349,10 @@ export default function OnboardingScreen() {
                   <Camera className="w-6 h-6 text-primary" />
                 </div>
                 <h2 className="font-serif-display text-3xl font-bold text-primary">
-                  Dale vida a Escobar
+                  Bring Escobar to Life
                 </h2>
                 <p className="font-nunito text-xs text-muted leading-relaxed px-4">
-                  Sube de <span className="font-bold text-text">5 a 10 fotos</span> de referencia. Entrenaremos un modelo LoRA para generar su avatar personalizado.
+                  Upload <span className="font-bold text-text">5 to 10 photos</span> of reference. We will train a LoRA model to generate her custom avatar.
                 </p>
               </div>
 
@@ -363,10 +363,10 @@ export default function OnboardingScreen() {
               >
                 <UploadCloud className="w-8 h-8 text-primary/70 mb-2 animate-bounce" />
                 <span className="font-nunito font-bold text-xs text-text">
-                  Toca para seleccionar fotos
+                  Tap to select photos
                 </span>
                 <span className="font-nunito text-[10px] text-muted mt-0.5">
-                  Formatos: JPEG, PNG, WebP (Máx. 10MB)
+                  Formats: JPEG, PNG, WebP (Max 10MB)
                 </span>
                 <input
                   ref={fileInputRef}
@@ -383,7 +383,7 @@ export default function OnboardingScreen() {
                 <div className="w-full mb-6">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-nunito text-[10px] font-bold text-muted uppercase">
-                      Fotos seleccionadas
+                      Selected photos
                     </span>
                     <span className="font-nunito text-xs text-primary font-bold">
                       {files.length} / 10
@@ -397,7 +397,7 @@ export default function OnboardingScreen() {
                           alt="thumbnail"
                           className="w-full h-full object-cover"
                         />
-                        <button
+                         <button
                           onClick={() => handleRemoveFile(idx)}
                           className="absolute top-0.5 right-0.5 bg-secondary/80 text-white p-0.5 rounded-full hover:bg-secondary transition-all active:scale-90"
                         >
@@ -416,7 +416,7 @@ export default function OnboardingScreen() {
                   disabled={files.length < 5 || loading}
                   className="flex w-full items-center justify-center bg-primary text-white font-nunito font-bold text-base h-12 rounded-[50px] shadow-md hover:bg-primary/95 transition-all active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none"
                 >
-                  Generar mi Escobar
+                  Generate my Escobar
                 </button>
 
                 <button
@@ -424,7 +424,7 @@ export default function OnboardingScreen() {
                   disabled={loading}
                   className="font-nunito text-sm text-muted font-bold hover:text-primary transition-colors underline text-center"
                 >
-                  Saltar por ahora (Usar ilustrado)
+                  Skip for now (Use illustrated)
                 </button>
               </div>
             </div>
@@ -434,7 +434,7 @@ export default function OnboardingScreen() {
         {/* Footer */}
         <div className="h-6 flex justify-center items-end">
           <p className="font-nunito text-[11px] text-muted/60">
-            Paso {step} de 3 • Tu profe de caliche 💖
+            Step {step} of 3 • Your tutor companion 💖
           </p>
         </div>
 

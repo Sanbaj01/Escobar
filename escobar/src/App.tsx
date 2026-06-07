@@ -7,7 +7,20 @@ import HomeScreen from './screens/Home';
 
 // Protected Route Guard
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, loading, profile } = useAuth();
+  const { isAuthenticated, loading, profile, initError } = useAuth();
+
+  if (initError) {
+    return (
+      <div className="flex h-screen w-screen flex-col items-center justify-center bg-[#FFF8F0] p-6 text-center">
+        <div className="text-secondary font-nunito text-lg font-semibold mb-2">
+          ¡Ay maje! Algo salió mal al iniciar:
+        </div>
+        <div className="bg-white border border-secondary/20 p-4 rounded-xl font-mono text-xs text-red-600 max-w-md break-all">
+          {initError}
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -33,7 +46,20 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 // Public Route Guard (prevents logged in users from seeing login screen)
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, initError } = useAuth();
+
+  if (initError) {
+    return (
+      <div className="flex h-screen w-screen flex-col items-center justify-center bg-[#FFF8F0] p-6 text-center">
+        <div className="text-secondary font-nunito text-lg font-semibold mb-2">
+          ¡Ay maje! Algo salió mal al iniciar:
+        </div>
+        <div className="bg-white border border-secondary/20 p-4 rounded-xl font-mono text-xs text-red-600 max-w-md break-all">
+          {initError}
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

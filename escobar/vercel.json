@@ -7,8 +7,5 @@
         { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" }
       ]
     }
-  ],
-  "functions": {
-    "api/**/*.ts": { "runtime": "nodejs20.x" }
-  }
+  ]
 }

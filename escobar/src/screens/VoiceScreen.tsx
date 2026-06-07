@@ -137,7 +137,7 @@ export default function VoiceScreen({ onClose }: VoiceScreenProps) {
         });
 
         if (!transcribeRes.ok) {
-          throw new Error('No se pudo transcribir tu voz, maje.');
+          throw new Error('Could not transcribe your voice, maje.');
         }
 
         const { text } = await transcribeRes.json();
@@ -166,11 +166,11 @@ export default function VoiceScreen({ onClose }: VoiceScreenProps) {
         });
 
         if (!chatRes.ok) {
-          throw new Error('Error al conectar con Escobar.');
+          throw new Error('Error connecting to Escobar.');
         }
 
         if (!chatRes.body) {
-          throw new Error('Canal de respuesta vacío.');
+          throw new Error('Empty response channel.');
         }
 
         const reader = chatRes.body.getReader();
@@ -209,7 +209,7 @@ export default function VoiceScreen({ onClose }: VoiceScreenProps) {
         }
 
         if (!fullResponse.trim()) {
-          throw new Error('No recibí respuesta de Escobar.');
+          throw new Error('Did not receive a response from Escobar.');
         }
 
         // 3. Speech synthesis (ElevenLabs)
@@ -226,7 +226,7 @@ export default function VoiceScreen({ onClose }: VoiceScreenProps) {
         });
 
         if (!speakRes.ok) {
-          throw new Error('ElevenLabs no pudo procesar el audio.');
+          throw new Error('ElevenLabs could not process the audio.');
         }
 
         const audioBuffer = await speakRes.arrayBuffer();
@@ -244,8 +244,8 @@ export default function VoiceScreen({ onClose }: VoiceScreenProps) {
       } catch (err: any) {
         console.error('Error inside voice loop pipeline:', err);
         if (isMountedRef.current) {
-          setLocalError(err.message || 'Ocurrió un error en el canal de voz.');
-          setEscobarText('Pucha maje, no te escuché bien. ¿Repetimos?');
+          setLocalError(err.message || 'An error occurred in the voice channel.');
+          setEscobarText('Pucha maje, I didn\'t hear you well. Try again?');
           setState('idle');
           porcupine.startListening();
         }
@@ -298,15 +298,15 @@ export default function VoiceScreen({ onClose }: VoiceScreenProps) {
   const getStatusDetails = () => {
     switch (state) {
       case 'idle':
-        return { text: 'DI "ESCOBAR" O TOCA PARA HABLAR', bg: 'bg-[#6B4C43]/10 text-[#6B4C43]' };
+        return { text: 'SAY "ESCOBAR" OR TAP TO TALK', bg: 'bg-[#6B4C43]/10 text-[#6B4C43]' };
       case 'listening':
-        return { text: 'ESCUCHANDO...', bg: 'bg-secondary/20 text-secondary animate-pulse' };
+        return { text: 'LISTENING...', bg: 'bg-secondary/20 text-secondary animate-pulse' };
       case 'transcribing':
-        return { text: 'TRANSCRIBIENDO...', bg: 'bg-accent/20 text-accent' };
+        return { text: 'TRANSCRIBING...', bg: 'bg-accent/20 text-accent' };
       case 'thinking':
-        return { text: 'PENSANDO...', bg: 'bg-accent/20 text-accent animate-pulse' };
+        return { text: 'THINKING...', bg: 'bg-accent/20 text-accent animate-pulse' };
       case 'speaking':
-        return { text: 'ESCOBAR HABLANDO', bg: 'bg-primary/20 text-primary' };
+        return { text: 'ESCOBAR TALKING', bg: 'bg-primary/20 text-primary' };
     }
   };
 
@@ -362,14 +362,14 @@ export default function VoiceScreen({ onClose }: VoiceScreenProps) {
           <div className="flex items-center gap-1.5 mb-1">
             <Sparkles className="w-3.5 h-3.5 text-primary" />
             <span className="font-nunito text-[10px] font-bold text-muted uppercase tracking-wider">
-              Transcripción en Vivo
+              Live Transcription
             </span>
           </div>
 
           <div className="space-y-1.5 text-xs font-nunito">
             {transcript && (
               <p className="text-muted leading-relaxed">
-                <span className="font-bold text-secondary">Tú:</span> {transcript}
+                <span className="font-bold text-secondary">You:</span> {transcript}
               </p>
             )}
             {escobarText && (
@@ -379,7 +379,7 @@ export default function VoiceScreen({ onClose }: VoiceScreenProps) {
             )}
             {!transcript && !escobarText && (
               <p className="text-muted/50 italic text-[11px]">
-                Habla con confianza en inglés o español...
+                Speak confidently in English or Spanish...
               </p>
             )}
           </div>

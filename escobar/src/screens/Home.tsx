@@ -62,7 +62,7 @@ export default function HomeScreen() {
             }`}
           >
             <Mic className="w-5 h-5" />
-            <span className="font-nunito text-[10px] mt-0.5">Habla</span>
+            <span className="font-nunito text-[10px] mt-0.5">Speak</span>
           </button>
 
           {/* Progreso Tab */}
@@ -75,7 +75,7 @@ export default function HomeScreen() {
             }`}
           >
             <BarChart2 className="w-5 h-5" />
-            <span className="font-nunito text-[10px] mt-0.5">Progreso</span>
+            <span className="font-nunito text-[10px] mt-0.5">Progress</span>
           </button>
 
           {/* Config Tab */}
@@ -88,7 +88,7 @@ export default function HomeScreen() {
             }`}
           >
             <Settings className="w-5 h-5" />
-            <span className="font-nunito text-[10px] mt-0.5">Config</span>
+            <span className="font-nunito text-[10px] mt-0.5">Settings</span>
           </button>
 
         </div>

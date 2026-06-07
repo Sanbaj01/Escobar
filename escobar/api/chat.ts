@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
+// Refactored to local Ollama instead of Anthropic
 import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req: any, res: any) {
@@ -224,17 +224,29 @@ If no corrections, return corrections as empty array [].`;
       'Connection': 'keep-alive',
     });
 
-    const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
+    const ollamaUrl = process.env.OLLAMA_HOST || 'http://127.0.0.1:11434';
+    const ollamaModel = process.env.OLLAMA_MODEL || 'llama3';
+
+    console.log(`Ollama: Calling ${ollamaModel} at ${ollamaUrl}...`);
+    const ollamaResponse = await fetch(`${ollamaUrl}/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: ollamaModel,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...claudeMessages
+        ],
+        stream: true,
+      }),
     });
 
-    const stream = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      system: systemPrompt,
-      messages: claudeMessages,
-      stream: true,
-    });
+    if (!ollamaResponse.ok) {
+      const errText = await ollamaResponse.text();
+      throw new Error(`Ollama API error: ${errText}`);
+    }
 
     let accumulatedContent = '';
     let inContentValue = false;
@@ -243,34 +255,56 @@ If no corrections, return corrections as empty array [].`;
     // Send the conversation ID back to the client first so it knows it
     res.write(`data: ${JSON.stringify({ type: 'meta', conversation_id: conversationId })}\n\n`);
 
-    for await (const chunk of stream) {
-      if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
-        const deltaText = chunk.delta.text;
-        const prevAccumulatedLength = accumulatedContent.length;
-        accumulatedContent += deltaText;
+    const reader = ollamaResponse.body;
+    if (!reader) throw new Error('Ollama: empty stream body');
 
-        // Extract characters and stream only the "content" value on-the-fly
-        for (let i = 0; i < deltaText.length; i++) {
-          const char = deltaText[i];
-          if (!inContentValue) {
-            const currentPosition = prevAccumulatedLength + i;
-            const tempAccumulated = accumulatedContent.substring(0, currentPosition + 1);
-            if (tempAccumulated.match(/"content"\s*:\s*"/)) {
-              inContentValue = true;
+    const decoder = new TextDecoder();
+    let streamBuffer = '';
+
+    for await (const chunk of reader as any) {
+      const chunkText = decoder.decode(chunk, { stream: true });
+      streamBuffer += chunkText;
+      const lines = streamBuffer.split('\n');
+      streamBuffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('data: ')) {
+          const dataStr = trimmed.substring(6);
+          if (dataStr === '[DONE]') continue;
+          try {
+            const data = JSON.parse(dataStr);
+            const deltaText = data.choices?.[0]?.delta?.content;
+            if (deltaText) {
+              const prevAccumulatedLength = accumulatedContent.length;
+              accumulatedContent += deltaText;
+
+              for (let i = 0; i < deltaText.length; i++) {
+                const char = deltaText[i];
+                if (!inContentValue) {
+                  const currentPosition = prevAccumulatedLength + i;
+                  const tempAccumulated = accumulatedContent.substring(0, currentPosition + 1);
+                  if (tempAccumulated.match(/"content"\s*:\s*"/)) {
+                    inContentValue = true;
+                  }
+                } else {
+                  if (isEscaped) {
+                    isEscaped = false;
+                    res.write(`data: ${JSON.stringify({ type: 'text_delta', content: char })}\n\n`);
+                    if (typeof res.flush === 'function') res.flush();
+                  } else if (char === '\\') {
+                    isEscaped = true;
+                  } else if (char === '"') {
+                    inContentValue = false;
+                  } else {
+                    res.write(`data: ${JSON.stringify({ type: 'text_delta', content: char })}\n\n`);
+                    if (typeof res.flush === 'function') res.flush();
+                  }
+                }
+              }
             }
-          } else {
-            if (isEscaped) {
-              isEscaped = false;
-              res.write(`data: ${JSON.stringify({ type: 'text_delta', content: char })}\n\n`);
-              if (typeof res.flush === 'function') res.flush();
-            } else if (char === '\\') {
-              isEscaped = true;
-            } else if (char === '"') {
-              inContentValue = false;
-            } else {
-              res.write(`data: ${JSON.stringify({ type: 'text_delta', content: char })}\n\n`);
-              if (typeof res.flush === 'function') res.flush();
-            }
+          } catch (e) {
+            // Partial JSON chunk
           }
         }
       }

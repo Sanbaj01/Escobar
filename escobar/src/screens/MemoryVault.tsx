@@ -15,10 +15,10 @@ interface MemoryVaultProps {
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  episodic: 'Episódico',
-  semantic: 'Semántico',
-  correction: 'Corrección',
-  preference: 'Preferencia'
+  episodic: 'Episodic',
+  semantic: 'Semantic',
+  correction: 'Correction',
+  preference: 'Preference'
 };
 
 const TYPE_COLORS: Record<string, string> = {
@@ -32,7 +32,7 @@ export default function MemoryVault({ onBack }: MemoryVaultProps) {
   const { user } = useAuth();
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<string>('todos');
+  const [filter, setFilter] = useState<string>('all');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -58,7 +58,7 @@ export default function MemoryVault({ onBack }: MemoryVaultProps) {
   }, [user]);
 
   const handleDeleteMemory = async (id: string) => {
-    if (!window.confirm('¿Segura que quieres que Escobar olvide este recuerdo, maje?')) return;
+    if (!window.confirm('Are you sure you want Escobar to forget this memory, maje?')) return;
     try {
       const { error } = await supabase
         .from('memories')
@@ -67,7 +67,7 @@ export default function MemoryVault({ onBack }: MemoryVaultProps) {
 
       if (error) throw error;
       setMemories(prev => prev.filter(m => m.id !== id));
-      setSuccess('Recuerdo olvidado.');
+      setSuccess('Memory forgotten.');
       setTimeout(() => setSuccess(null), 2000);
     } catch (err) {
       console.error('Error deleting memory:', err);
@@ -75,7 +75,7 @@ export default function MemoryVault({ onBack }: MemoryVaultProps) {
   };
 
   const handleClearAll = async () => {
-    if (!window.confirm('¿Deseas BORRAR TODA LA MEMORIA de Escobar? Este cambio es permanente y no recordará nada sobre ti.')) return;
+    if (!window.confirm('Do you want to ERASE ALL OF Escobar\'s memories? This change is permanent and he will not remember anything about you.')) return;
     setLoading(true);
     try {
       const { error } = await supabase
@@ -85,11 +85,11 @@ export default function MemoryVault({ onBack }: MemoryVaultProps) {
 
       if (error) throw error;
       setMemories([]);
-      setSuccess('Toda la memoria borrada.');
+      setSuccess('All memories erased.');
       setTimeout(() => setSuccess(null), 2000);
     } catch (err) {
       console.error('Error clearing memories:', err);
-      setError('Error al borrar la memoria.');
+      setError('Error erasing memory.');
     } finally {
       setLoading(false);
     }
@@ -106,7 +106,7 @@ export default function MemoryVault({ onBack }: MemoryVaultProps) {
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-      setSuccess('Datos exportados.');
+      setSuccess('Data exported.');
       setTimeout(() => setSuccess(null), 2000);
     } catch (err) {
       console.error('Export failed:', err);
@@ -114,11 +114,11 @@ export default function MemoryVault({ onBack }: MemoryVaultProps) {
   };
 
   const filteredMemories = memories.filter(m => {
-    if (filter === 'todos') return true;
+    if (filter === 'all') return true;
     return m.type === filter;
   });
 
-  const filterOptions = ['todos', 'episodic', 'semantic', 'correction', 'preference'];
+  const filterOptions = ['all', 'episodic', 'semantic', 'correction', 'preference'];
 
   return (
     <div className="flex-grow flex flex-col bg-bg h-full animate-fadeIn justify-between select-none">
@@ -129,10 +129,10 @@ export default function MemoryVault({ onBack }: MemoryVaultProps) {
           onClick={onBack}
           className="flex items-center text-primary font-nunito font-bold text-sm gap-1 hover:opacity-80 active:scale-95 transition-all"
         >
-          <span>Volver</span>
+          <span>Back</span>
         </button>
         <h2 className="flex-grow text-center font-serif-display text-lg font-bold pr-12 text-text">
-          Bóveda de Memoria
+          Memory Vault
         </h2>
       </div>
 
@@ -155,7 +155,7 @@ export default function MemoryVault({ onBack }: MemoryVaultProps) {
         <div className="space-y-2">
           <div className="flex items-center gap-1.5 pl-1 text-muted text-xs font-bold uppercase tracking-wider">
             <Filter className="w-3.5 h-3.5" />
-            <span>Filtrar recuerdos</span>
+            <span>Filter memories</span>
           </div>
           <div className="flex gap-1.5 overflow-x-auto pb-1 max-w-full">
             {filterOptions.map((opt) => (
@@ -168,7 +168,7 @@ export default function MemoryVault({ onBack }: MemoryVaultProps) {
                     : 'bg-white text-text border-primary/10 hover:border-primary/30'
                 }`}
               >
-                {opt === 'todos' ? 'Todos' : TYPE_LABELS[opt] || opt}
+                {opt === 'all' ? 'All' : TYPE_LABELS[opt] || opt}
               </button>
             ))}
           </div>
@@ -182,8 +182,8 @@ export default function MemoryVault({ onBack }: MemoryVaultProps) {
         ) : filteredMemories.length === 0 ? (
           <div className="bg-white/50 border border-dashed border-primary/20 rounded-2xl p-10 text-center text-muted font-nunito text-sm">
             {memories.length === 0 
-              ? 'Escobar no tiene recuerdos guardados todavía. ¡Háblale más!' 
-              : 'No hay recuerdos en este filtro, maje.'}
+              ? 'Escobar does not have any saved memories yet. Talk to him more!' 
+              : 'No memories found for this filter, maje.'}
           </div>
         ) : (
           <div className="flex flex-col space-y-3">
@@ -226,7 +226,7 @@ export default function MemoryVault({ onBack }: MemoryVaultProps) {
             className="flex-1 flex items-center justify-center gap-2 border border-primary text-primary bg-transparent font-nunito font-bold text-xs h-10 rounded-[50px] hover:bg-primary/5 active:scale-98 transition-all"
           >
             <Download className="w-4 h-4" />
-            <span>Exportar JSON</span>
+            <span>Export JSON</span>
           </button>
           
           <button
@@ -234,7 +234,7 @@ export default function MemoryVault({ onBack }: MemoryVaultProps) {
             className="flex-1 flex items-center justify-center gap-2 border border-secondary text-secondary bg-transparent font-nunito font-bold text-xs h-10 rounded-[50px] hover:bg-secondary/5 active:scale-98 transition-all"
           >
             <Trash2 className="w-4 h-4" />
-            <span>Olvidar todo</span>
+            <span>Forget all</span>
           </button>
         </div>
       )}

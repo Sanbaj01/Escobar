@@ -8,11 +8,11 @@ import MemoryVault from './MemoryVault';
 type SubView = 'settings' | 'avatar-studio' | 'memory-vault';
 
 const getLevelLabel = (level: number): string => {
-  if (level <= 2) return 'Principiante';
-  if (level <= 4) return 'Básico';
-  if (level <= 6) return 'Intermedio';
-  if (level <= 8) return 'Avanzado';
-  return 'Hondureña Fluida';
+  if (level <= 2) return 'Beginner';
+  if (level <= 4) return 'Basic';
+  if (level <= 6) return 'Intermediate';
+  if (level <= 8) return 'Advanced';
+  return 'Fluent Honduran';
 };
 
 export default function SettingsScreen() {
@@ -103,7 +103,7 @@ export default function SettingsScreen() {
         {/* Header Title */}
         <div className="flex items-center justify-center px-4 py-4 border-b border-primary/10 bg-white">
           <h2 className="font-serif-display text-xl font-bold text-text">
-            Configuración
+            Settings
           </h2>
         </div>
 
@@ -113,7 +113,7 @@ export default function SettingsScreen() {
           {/* Section: Perfil */}
           <div className="space-y-2">
             <span className="font-nunito text-[10px] font-bold text-muted uppercase tracking-wider pl-1">
-              Perfil
+              Profile
             </span>
             <div className="bg-white border border-primary/10 rounded-2xl p-4 shadow-sm flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-surface border border-primary flex items-center justify-center text-primary font-bold text-lg">
@@ -124,7 +124,7 @@ export default function SettingsScreen() {
                   {profile?.display_name || 'Maje'}
                 </h4>
                 <p className="font-nunito text-xs text-muted">
-                  Nivel de Español: {profile?.spanish_level || 1} ({getLevelLabel(profile?.spanish_level || 1)})
+                  Spanish Level: {profile?.spanish_level || 1} ({getLevelLabel(profile?.spanish_level || 1)})
                 </p>
               </div>
             </div>
@@ -133,13 +133,13 @@ export default function SettingsScreen() {
           {/* Section: Idioma y Nivel */}
           <div className="space-y-2">
             <span className="font-nunito text-[10px] font-bold text-muted uppercase tracking-wider pl-1">
-              Idioma y Nivel
+              Language & Level
             </span>
             <div className="bg-white border border-primary/10 rounded-2xl p-4 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex flex-col">
-                  <span className="font-nunito font-semibold text-sm text-text">Nivel de Español</span>
-                  <span className="font-nunito text-[10px] text-muted">Nivel actual evaluado u override</span>
+                  <span className="font-nunito font-semibold text-sm text-text">Spanish Level</span>
+                  <span className="font-nunito text-[10px] text-muted">Current evaluated level or override</span>
                 </div>
                 <select
                   value={profile?.spanish_level || 1}
@@ -148,7 +148,7 @@ export default function SettingsScreen() {
                 >
                   {[...Array(10)].map((_, i) => (
                     <option key={i + 1} value={i + 1}>
-                      Nivel {i + 1} ({getLevelLabel(i + 1)})
+                      Level {i + 1} ({getLevelLabel(i + 1)})
                     </option>
                   ))}
                 </select>
@@ -159,7 +159,7 @@ export default function SettingsScreen() {
           {/* Section: Escobar Avatar */}
           <div className="space-y-2">
             <span className="font-nunito text-[10px] font-bold text-muted uppercase tracking-wider pl-1">
-              Personalización de Escobar
+              Escobar Customization
             </span>
             <div className="bg-white border border-primary/10 rounded-2xl overflow-hidden shadow-sm divide-y divide-primary/5">
               {/* Avatar Studio Link */}
@@ -169,7 +169,7 @@ export default function SettingsScreen() {
               >
                 <div className="flex items-center gap-3 text-text">
                   <Camera className="w-4 h-4 text-primary" />
-                  <span className="font-nunito font-semibold text-sm">Estudio de Avatar (Fotos)</span>
+                  <span className="font-nunito font-semibold text-sm">Avatar Studio (Photos)</span>
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted" />
               </button>
@@ -179,7 +179,7 @@ export default function SettingsScreen() {
           {/* Section: Memoria */}
           <div className="space-y-2">
             <span className="font-nunito text-[10px] font-bold text-muted uppercase tracking-wider pl-1">
-              Cognición
+              Cognition
             </span>
             <div className="bg-white border border-primary/10 rounded-2xl overflow-hidden shadow-sm">
               {/* Memory Link */}
@@ -189,7 +189,7 @@ export default function SettingsScreen() {
               >
                 <div className="flex items-center gap-3 text-text">
                   <Brain className="w-4 h-4 text-primary" />
-                  <span className="font-nunito font-semibold text-sm">Bóveda de Memoria</span>
+                  <span className="font-nunito font-semibold text-sm">Memory Vault</span>
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted" />
               </button>
@@ -199,18 +199,18 @@ export default function SettingsScreen() {
           {/* Section: Configuración de Voz */}
           <div className="space-y-2">
             <span className="font-nunito text-[10px] font-bold text-muted uppercase tracking-wider pl-1">
-              Ajustes de Voz
+              Voice Settings
             </span>
             <div className="bg-white border border-primary/10 rounded-2xl p-4 shadow-sm space-y-4">
               <div className="flex items-center gap-3 text-text pb-2 border-b border-primary/5">
                 <Volume2 className="w-4 h-4 text-primary" />
-                <span className="font-nunito font-semibold text-sm">Voz de Escobar</span>
+                <span className="font-nunito font-semibold text-sm">Escobar's Voice</span>
               </div>
 
               {/* Volume Slider */}
               <div className="space-y-1">
                 <div className="flex justify-between items-center text-xs font-nunito font-semibold text-text">
-                  <span>Volumen de Voz</span>
+                  <span>Voice Volume</span>
                   <span className="text-primary font-bold">{localVolume}%</span>
                 </div>
                 <input
@@ -228,7 +228,7 @@ export default function SettingsScreen() {
               {/* Speed Slider */}
               <div className="space-y-1">
                 <div className="flex justify-between items-center text-xs font-nunito font-semibold text-text">
-                  <span>Velocidad de Habla</span>
+                  <span>Speech Speed</span>
                   <span className="text-primary font-bold">{localSpeed.toFixed(1)}x</span>
                 </div>
                 <input
@@ -247,8 +247,8 @@ export default function SettingsScreen() {
               {/* Wake Word Toggle */}
               <div className="flex items-center justify-between pt-2 border-t border-primary/5">
                 <div className="flex flex-col">
-                  <span className="text-xs font-nunito font-semibold text-text">Escucha activa ('Escobar')</span>
-                  <span className="text-[10px] text-muted leading-tight">Activa el micro continuo con wake word</span>
+                  <span className="text-xs font-nunito font-semibold text-text">Active Listening ('Escobar')</span>
+                  <span className="text-[10px] text-muted leading-tight">Enables hands-free wake word listening</span>
                 </div>
                 <button
                   type="button"
@@ -270,7 +270,7 @@ export default function SettingsScreen() {
           {/* Account Card */}
           <div className="bg-white border border-primary/10 rounded-2xl p-4 shadow-sm space-y-4">
             <p className="font-nunito text-xs text-muted">
-              Sesión iniciada como <span className="font-semibold text-text">{user?.email}</span>
+              Logged in as <span className="font-semibold text-text">{user?.email}</span>
             </p>
             <button
               onClick={handleSignOut}
@@ -278,7 +278,7 @@ export default function SettingsScreen() {
               className="flex w-full items-center justify-center gap-2 bg-[#FF8C69] text-white font-nunito font-bold text-sm h-10 rounded-[50px] hover:bg-[#FF8C69]/90 active:scale-[0.98] transition-all disabled:opacity-50"
             >
               <LogOut className="w-4 h-4" />
-              <span>{isSignoutLoading ? 'Saliendo...' : 'Cerrar sesión'}</span>
+              <span>{isSignoutLoading ? 'Logging out...' : 'Log out'}</span>
             </button>
           </div>
 
@@ -288,7 +288,7 @@ export default function SettingsScreen() {
       {/* Footer Info */}
       <div className="px-4 py-4 border-t border-primary/5 bg-white text-center">
         <p className="font-nunito text-[10px] text-muted/60">
-          Proyecto Escobar © 2026 • Versión 1.0.0
+          Project Escobar © 2026 • Version 1.0.0
         </p>
       </div>
 

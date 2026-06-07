@@ -113,13 +113,13 @@ export default function ChatScreen() {
     <div className="flex-1 flex flex-col min-h-0 bg-[#FFF8F0]">
       {/* ZONE A: Avatar & Header */}
       <div className="flex flex-col items-center pt-8 pb-4 border-b border-[#F25C8A]/10 bg-gradient-to-b from-[#FAD4E0]/20 to-transparent relative">
-        {/* Scenarios Retos Trigger Button */}
+        {/* Scenarios Challenges Trigger Button */}
         <button
           onClick={() => setChatView('scenarios')}
           className="absolute top-6 right-4 flex items-center gap-1 bg-[#FBEAF0] text-primary font-nunito font-bold text-xs px-3 py-1.5 rounded-full hover:bg-[#FBEAF0]/80 active:scale-95 transition-all shadow-sm border border-primary/10"
         >
           <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-          <span>Retos</span>
+          <span>Challenges</span>
         </button>
 
         {/* Dynamic Avatar Component */}
@@ -133,7 +133,7 @@ export default function ChatScreen() {
           {activeScenario ? activeScenario.name : 'Escobar'}
         </h2>
         <span className="font-nunito text-[12px] font-semibold text-muted tracking-wider uppercase mt-0.5">
-          {activeScenario ? 'Reto de Conversación' : 'Tu Hondureña'}
+          {activeScenario ? 'Conversation Challenge' : 'Your Hondureña'}
         </span>
       </div>
 
@@ -143,15 +143,15 @@ export default function ChatScreen() {
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 shrink-0 text-[#FF8C69]" />
             <div className="flex flex-col">
-              <span className="font-nunito font-bold text-[11px] text-text">Reto: {activeScenario.name}</span>
-              <span className="font-nunito text-[9px] text-muted leading-tight">Escobar está actuando en este papel.</span>
+              <span className="font-nunito font-bold text-[11px] text-text">Challenge: {activeScenario.name}</span>
+              <span className="font-nunito text-[9px] text-muted leading-tight">Escobar is acting in this role.</span>
             </div>
           </div>
           <button
             onClick={handleExitScenario}
             className="text-[10px] font-nunito font-bold bg-[#FF8C69]/20 hover:bg-[#FF8C69]/30 text-text px-2.5 py-1 rounded-[50px] active:scale-95 transition-all border border-secondary/15"
           >
-            Finalizar Reto
+            End Challenge
           </button>
         </div>
       )}
@@ -174,7 +174,7 @@ export default function ChatScreen() {
             type="text"
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
-            placeholder="Escríbeme algo..."
+            placeholder="Write me something..."
             disabled={isLoading}
             className="flex-1 bg-transparent border-0 outline-none text-text placeholder-muted/50 font-nunito text-sm disabled:opacity-70"
           />
